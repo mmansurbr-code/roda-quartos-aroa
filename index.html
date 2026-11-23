@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>Sorteio Mansão Aroa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: régua de regata — roda grande à esquerda, súmula de quartos à direita; uma coluna no celular */
+:root{
+  --bg:#EEF2F5; --panel:#FFFFFF; --ink:#0D1F33; --muted:#5A6B7C; --line:#D5DEE6;
+  --navy:#0B2A4A; --accent:#E8B21C; --red:#C8342B; --blue:#1F5FA8; --white:#FFFFFF; --ok:#1E8A5A;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#08131F; --panel:#0F2133; --ink:#E7EEF5; --muted:#93A6B8; --line:#21384F;
+  --navy:#E7EEF5; --accent:#F2C13A; --red:#E25A50; --blue:#5B9BE0; --white:#0F2133; --ok:#43B984; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#08131F; --panel:#0F2133; --ink:#E7EEF5; --muted:#93A6B8; --line:#21384F;
+  --navy:#E7EEF5; --accent:#F2C13A; --red:#E25A50; --blue:#5B9BE0; --white:#0F2133; --ok:#43B984; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
+.wrap{max-width:1100px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px;margin-bottom:20px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(2rem,6vw,3.2rem);line-height:.95;margin:0;letter-spacing:.01em;text-transform:uppercase;color:var(--navy);text-wrap:balance}
+.sub{color:var(--muted);margin:6px 0 0}
+.flags{display:flex;gap:4px}
+.flags i{width:22px;height:16px;display:block;border-radius:2px}
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.wheelbox{position:relative;width:100%;max-width:480px;aspect-ratio:1}
+canvas{width:100%;height:100%;display:block}
+.pointer{position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:30px solid var(--red);filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));z-index:2}
+.hub{position:absolute;inset:0;margin:auto;width:22%;height:22%;border-radius:50%;background:var(--panel);border:4px solid var(--accent);display:grid;place-items:center;text-align:center;font-family:var(--display);font-weight:700;font-size:clamp(.8rem,2.6vw,1.1rem);line-height:1;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.hub b{display:block;font-size:1.8em}
+.controls{display:flex;flex-wrap:wrap;gap:10px;width:100%;max-width:480px}
+label.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+input[type=text]{flex:1 1 200px;min-width:0;font:inherit;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+input[type=text]:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button{font-family:var(--display);font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:0;border-radius:10px;cursor:pointer}
+.spin{flex:1 1 160px;background:var(--red);color:#fff;font-size:1.35rem;padding:12px 20px}
+.spin:disabled{opacity:.45;cursor:not-allowed}
+.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);padding:8px 12px;font-size:.95rem}
+.result{width:100%;max-width:480px;min-height:84px;border-radius:12px;border:2px dashed var(--line);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:12px}
+.result.on{border-style:solid;border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.result .who{color:var(--muted);font-size:.95rem}
+.result .room{font-family:var(--display);font-weight:800;font-size:2rem;text-transform:uppercase;line-height:1.05}
+.result .bed{font-size:.95rem;color:var(--muted)}
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.card h2{font-family:var(--display);font-weight:700;font-size:1.25rem;text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card h2 small{font-family:var(--body);font-weight:500;font-size:.85rem;color:var(--muted);text-transform:none;letter-spacing:0}
+.rooms{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.rooms li{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.rooms li:last-child{border-bottom:0}
+.sw{width:14px;height:14px;border-radius:3px}
+.rn{font-weight:600}
+.rb{color:var(--muted);font-size:.85rem;display:block;font-weight:400}
+.ppl{font-size:.9rem;text-align:right;font-variant-numeric:tabular-nums}
+.ppl .name{display:block}
+.ppl .free{color:var(--muted)}
+.rooms li.full .rn{text-decoration:line-through;text-decoration-color:var(--muted)}
+.rooms li.full .ppl{color:var(--ok);font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;font-size:.95rem}
+.confirm .danger{background:var(--red);color:#fff;padding:8px 12px}
+.note{color:var(--muted);font-size:.85rem;margin:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head><body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Sorteio dos quartos<br>Mansão Aroa</h1>
+      <p class="sub">13 vagas em 10 quartos. Cada um gira a roda uma vez.</p>
+    </div>
+    <div class="flags" aria-hidden="true"><i style="background:#C8342B"></i><i style="background:#E8B21C"></i><i style="background:#1F5FA8"></i><i style="background:#0B2A4A"></i></div>
+  </header>
+
+  <div class="grid">
+    <section class="stage" aria-label="Roda do sorteio">
+      <div class="wheelbox">
+        <div class="pointer" aria-hidden="true"></div>
+        <canvas id="wheel" width="960" height="960" aria-label="Roda com os quartos que ainda têm vaga"></canvas>
+        <div class="hub" id="hub"><span><b id="left">13</b>vagas</span></div>
+      </div>
+      <div class="controls">
+        <label class="sr" for="nome">Nome de quem vai sortear</label>
+        <input type="text" id="nome" placeholder="Quem vai girar? (nome)" autocomplete="off" maxlength="30">
+        <button class="spin" id="spin">Girar</button>
+      </div>
+      <div class="result" id="result" aria-live="polite">
+        <span class="who">Digite o nome e clique em Girar.</span>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="card">
+        <h2>Quartos <small id="count">0 de 13 sorteados</small></h2>
+        <ul class="rooms" id="rooms"></ul>
+      </div>
+      <div class="card">
+        <div class="row">
+          <button class="ghost" id="undo">Desfazer último</button>
+          <button class="ghost" id="copy">Copiar resultado</button>
+          <button class="ghost" id="reset">Recomeçar</button>
+        </div>
+        <div class="confirm" id="confirmBox" hidden>
+          <span>Apagar todo o sorteio?</span>
+          <button class="danger" id="confirmYes">Sim, apagar</button>
+          <button class="ghost" id="confirmNo">Cancelar</button>
+        </div>
+        <p class="note" id="msg" style="margin-top:10px">O sorteio fica salvo neste aparelho. Use o mesmo celular ou computador e passe de mão em mão.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const ROOMS=[
+  {n:'Snipe',bed:'King',cap:1,c:'#C8342B'},
+  {n:'Soling',bed:'King',cap:1,c:'#1F5FA8'},
+  {n:'Tornado',bed:'Queen',cap:1,c:'#E8B21C'},
+  {n:'Windsurf',bed:'Queen',cap:1,c:'#0B2A4A'},
+  {n:'Penguin',bed:'Casal',cap:1,c:'#2E8F6E'},
+  {n:'Star',bed:'King',cap:1,c:'#D9662B'},
+  {n:'Laser',bed:'Queen',cap:1,c:'#6A4BA0'},
+  {n:'Dingue',bed:'1 Queen + 1 sofá-cama',cap:2,c:'#17847F'},
+  {n:'Flotilha',bed:'2 camas de solteiro',cap:2,c:'#9C2F5E'},
+  {n:'Optimist',bed:'2 camas de solteiro',cap:2,c:'#4E6E8A'}
+];
+const TOTAL=ROOMS.reduce((s,r)=>s+r.cap,0);
+const KEY='sorteio-aroa-v1';
+let draws=[]; // {room, name}
+try{const s=JSON.parse(localStorage.getItem(KEY)||'[]'); if(Array.isArray(s)) draws=s.filter(d=>ROOMS.some(r=>r.n===d.room));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(draws))}catch(e){}}
+
+function slots(){ // uma fatia por vaga restante
+  const out=[];
+  ROOMS.forEach(r=>{const used=draws.filter(d=>d.room===r.n).length; for(let i=used;i<r.cap;i++) out.push(r);});
+  // intercala para não juntar fatias iguais
+  out.sort((a,b)=>0);
+  const res=[]; const byRoom={}; out.forEach(r=>(byRoom[r.n]=byRoom[r.n]||[]).push(r));
+  const firsts=[],seconds=[]; Object.values(byRoom).forEach(a=>{firsts.push(a[0]); if(a[1]) seconds.push(a[1]);});
+  const half=Math.ceil(firsts.length/2);
+  return firsts.slice(0,half).concat(seconds.slice(0,Math.ceil(seconds.length/2)),firsts.slice(half),seconds.slice(Math.ceil(seconds.length/2)));
+}
+
+const cv=document.getElementById('wheel'), ctx=cv.getContext('2d');
+let rot=0, spinning=false, winIdx=-1;
+function textColor(hex){const v=parseInt(hex.slice(1),16),r=v>>16,g=v>>8&255,b=v&255;return (r*299+g*587+b*114)/1000>150?'#0D1F33':'#FFFFFF'}
+function draw(){
+  const S=slots(), W=cv.width, R=W/2-12, cx=W/2, cy=W/2;
+  ctx.clearRect(0,0,W,W);
+  ctx.beginPath();ctx.arc(cx,cy,R+8,0,Math.PI*2);ctx.fillStyle='#0B2A4A';ctx.fill();
+  if(!S.length){ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fillStyle='#1E8A5A';ctx.fill();return;}
+  const seg=Math.PI*2/S.length;
+  S.forEach((r,i)=>{
+    const a0=-Math.PI/2+rot+i*seg, a1=a0+seg;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,a0,a1);ctx.closePath();
+    ctx.fillStyle=r.c;ctx.fill();
+    ctx.lineWidth=4;ctx.strokeStyle='#FFFFFF';ctx.stroke();
+    if(i===winIdx){ctx.fillStyle='rgba(255,255,255,.28)';ctx.fill();}
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(a0+seg/2);
+    ctx.fillStyle=textColor(r.c);ctx.textAlign='right';ctx.textBaseline='middle';
+    const fs=Math.min(56,Math.max(30,seg*R*0.42));
+    ctx.font=`700 ${fs}px "Barlow Condensed","Arial Narrow",sans-serif`;
+    ctx.fillText(r.n.toUpperCase(),R-28,0);
+    ctx.restore();
+  });
+}
+
+function render(){
+  const left=TOTAL-draws.length;
+  document.getElementById('left').textContent=left;
+  document.getElementById('count').textContent=`${draws.length} de ${TOTAL} sorteados`;
+  const ul=document.getElementById('rooms'); ul.innerHTML='';
+  ROOMS.forEach(r=>{
+    const who=draws.filter(d=>d.room===r.n).map(d=>d.name);
+    const li=document.createElement('li'); if(who.length>=r.cap) li.className='full';
+    li.innerHTML=`<span class="sw" style="background:${r.c}"></span><span class="rn"></span><span class="ppl"></span>`;
+    li.querySelector('.rn').innerHTML=''; const rn=li.querySelector('.rn');
+    rn.textContent=r.n; const rb=document.createElement('span'); rb.className='rb'; rb.textContent=`${r.cap===1?'Individual':'2 pessoas'} · ${r.bed}`; rn.appendChild(rb);
+    const p=li.querySelector('.ppl');
+    who.forEach(n=>{const s=document.createElement('span');s.className='name';s.textContent=n;p.appendChild(s);});
+    const free=r.cap-who.length; if(free>0){const s=document.createElement('span');s.className='free';s.textContent=free===1?'1 vaga':`${free} vagas`;p.appendChild(s);}
+    ul.appendChild(li);
+  });
+  const sb=document.getElementById('spin');
+  sb.disabled=spinning||left===0; sb.textContent=left===0?'Tudo sorteado':'Girar';
+  document.getElementById('undo').disabled=spinning||!draws.length;
+  draw();
+}
+
+function showResult(d,r){
+  const el=document.getElementById('result'); el.className='result on';
+  el.innerHTML='<span class="who"></span><span class="room"></span><span class="bed"></span>';
+  el.querySelector('.who').textContent=d.name+' vai para o';
+  el.querySelector('.room').textContent=r.n;
+  const mate=draws.filter(x=>x.room===r.n&&x!==d).map(x=>x.name);
+  el.querySelector('.bed').textContent=r.bed+(mate.length?` · divide com ${mate.join(', ')}`:(r.cap>1?' · ainda sobra 1 vaga':''));
+}
+
+function rand(){const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]/4294967296}
+
+document.getElementById('spin').addEventListener('click',()=>{
+  const S=slots(); if(spinning||!S.length) return;
+  const inp=document.getElementById('nome');
+  const name=inp.value.trim()||`Pessoa ${draws.length+1}`;
+  spinning=true; winIdx=-1; render();
+  const seg=Math.PI*2/S.length, k=Math.floor(rand()*S.length);
+  const jitter=(rand()-.5)*seg*0.7;
+  const target=-(k+.5)*seg+jitter;
+  const TAU=Math.PI*2, cur=((rot%TAU)+TAU)%TAU;
+  const delta=(((target-cur)%TAU)+TAU)%TAU;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const start=rot, end=rot+delta+(reduce?0:TAU*6), dur=reduce?400:5200, t0=performance.now();
+  function step(){
+    const p=Math.min(1,(performance.now()-t0)/dur), e=1-Math.pow(1-p,4);
+    rot=start+(end-start)*e; draw();
+    if(p<1) return requestAnimationFrame(step);
+    rot=end; winIdx=k; draw();
+    const room=S[k]; const d={room:room.n,name}; draws.push(d); save();
+    showResult(d,room);
+    setTimeout(()=>{spinning=false;winIdx=-1;rot=0;inp.value='';render();inp.focus();},1800);
+  }
+  requestAnimationFrame(step);
+});
+document.getElementById('nome').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('spin').click();});
+document.getElementById('undo').addEventListener('click',()=>{
+  if(spinning||!draws.length) return; const d=draws.pop(); save(); render();
+  const el=document.getElementById('result'); el.className='result'; el.innerHTML='<span class="who"></span>';
+  el.querySelector('.who').textContent=`Desfeito: ${d.name} saiu do ${d.room}.`;
+});
+const cb=document.getElementById('confirmBox');
+document.getElementById('reset').addEventListener('click',()=>{cb.hidden=false;});
+document.getElementById('confirmNo').addEventListener('click',()=>{cb.hidden=true;});
+document.getElementById('confirmYes').addEventListener('click',()=>{
+  cb.hidden=true; draws=[]; save(); rot=0; render();
+  const el=document.getElementById('result'); el.className='result'; el.innerHTML='<span class="who">Sorteio zerado. Digite o nome e clique em Girar.</span>';
+});
+document.getElementById('copy').addEventListener('click',()=>{
+  const lines=['🏡 MANSÃO AROA – SORTEIO DOS QUARTOS',''];
+  ROOMS.forEach(r=>{const who=draws.filter(d=>d.room===r.n).map(d=>d.name);lines.push(`${r.n} (${r.bed}): ${who.length?who.join(' e '):'—'}`);});
+  const txt=lines.join('\n'), msg=document.getElementById('msg');
+  const fallback=()=>{msg.textContent='Não deu para copiar automaticamente. Selecione o texto abaixo:';const pre=document.createElement('pre');pre.textContent=txt;pre.style.whiteSpace='pre-wrap';msg.after(pre);};
+  try{navigator.clipboard.writeText(txt).then(()=>{msg.textContent='Resultado copiado. Cole no WhatsApp.';},fallback);}catch(e){fallback();}
+});
+document.fonts&&document.fonts.ready.then(draw);
+render();
+</script>
+</body></html>
